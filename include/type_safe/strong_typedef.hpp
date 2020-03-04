@@ -60,30 +60,16 @@ public:
 
     /// \returns A reference to the stored underlying value.
     /// \group value_conv
-    explicit TYPE_SAFE_CONSTEXPR14 operator T&() TYPE_SAFE_LVALUE_REF noexcept
+    explicit TYPE_SAFE_CONSTEXPR14 operator T&() noexcept
     {
         return value_;
     }
 
     /// \group value_conv
-    explicit constexpr operator const T&() const TYPE_SAFE_LVALUE_REF noexcept
+    explicit constexpr operator const T&() const noexcept
     {
         return value_;
     }
-
-#if TYPE_SAFE_USE_REF_QUALIFIERS
-    /// \group value_conv
-    explicit TYPE_SAFE_CONSTEXPR14 operator T &&() && noexcept
-    {
-        return std::move(value_);
-    }
-
-    /// \group value_conv
-    explicit constexpr operator const T &&() const&& noexcept
-    {
-        return std::move(value_);
-    }
-#endif
 
     friend void swap(strong_typedef& a, strong_typedef& b) noexcept
     {
@@ -114,28 +100,14 @@ using underlying_type
 template <class Tag, typename T>
 TYPE_SAFE_CONSTEXPR14 T& get(strong_typedef<Tag, T>& type) noexcept
 {
-    return static_cast<T&>(type);
+    return type.operator T&();
 }
 
 /// \group strong_typedef_get
 template <class Tag, typename T>
 constexpr const T& get(const strong_typedef<Tag, T>& type) noexcept
 {
-    return static_cast<const T&>(type);
-}
-
-/// \group strong_typedef_get
-template <class Tag, typename T>
-TYPE_SAFE_CONSTEXPR14 T&& get(strong_typedef<Tag, T>&& type) noexcept
-{
-    return static_cast<T&&>(static_cast<T&>(type));
-}
-
-/// \group strong_typedef_get
-template <class Tag, typename T>
-constexpr const T&& get(const strong_typedef<Tag, T>&& type) noexcept
-{
-    return static_cast<const T&&>(static_cast<const T&>(type));
+    return type.operator const T&();
 }
 
 /// Some operations for [ts::strong_typedef]().
@@ -167,12 +139,6 @@ namespace strong_typedef_op
         TYPE_SAFE_CONSTEXPR14 underlying_type<StrongTypedef>& get_underlying(StrongTypedef& type)
         {
             return get(static_cast<StrongTypedef&>(type));
-        }
-
-        template <class StrongTypedef>
-        TYPE_SAFE_CONSTEXPR14 underlying_type<StrongTypedef>&& get_underlying(StrongTypedef&& type)
-        {
-            return get(static_cast<StrongTypedef&&>(type));
         }
 
         // ensure constexpr
@@ -759,8 +725,7 @@ namespace strong_typedef_op
         friend std::basic_ostream<Char, CharTraits>& operator<<(
             std::basic_ostream<Char, CharTraits>& out, const StrongTypedef& val)
         {
-            using type = underlying_type<StrongTypedef>;
-            return out << static_cast<const type&>(val);
+            return out << get(val);
         }
     };
 
