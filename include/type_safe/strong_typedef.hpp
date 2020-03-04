@@ -50,10 +50,10 @@ public:
 
     /// \effects Copy (1)/moves (2) the underlying value.
     /// \group value_ctor
-    explicit constexpr strong_typedef(const T& value) : value_(value) {}
+    constexpr strong_typedef(const T& value) : value_(value) {}
 
     /// \group value_ctor
-    explicit constexpr strong_typedef(T&& value) noexcept(
+    constexpr strong_typedef(T&& value) noexcept(
         std::is_nothrow_move_constructible<T>::value)
     : value_(static_cast<T&&>(value)) // std::move() might not be constexpr
     {}
